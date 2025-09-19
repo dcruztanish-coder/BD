@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+        body {
+            font-family: 'Pacifico', cursive;
+            background: linear-gradient(135deg, #f7d1d1, #a3d4f1, #c1e2b3);
+            background-attachment: fixed;
+        }
+        .text-neon {
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff66b2, 0 0 30px #ff66b2, 0 0 40px #ff66b2, 0 0 50px #ff66b2, 0 0 60px #ff66b2;
+        }
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Main Content Container -->
+    <div class="w-full max-w-xl mx-auto p-6 bg-white bg-opacity-80 rounded-3xl shadow-2xl text-center">
+
+        <!-- Initial Message Section -->
+        <div id="intro-section" class="flex flex-col items-center">
+            <h1 class="text-6xl font-extrabold text-pink-500 mb-4 text-neon">Happy Birthday!</h1>
+            
+            <p class="text-xl text-gray-700 mb-8">Ready for a little birthday quiz?</p>
+            <button id="start-button" class="bg-purple-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-purple-600 transform hover:scale-105 transition-all duration-300">
+                Start Birthday Quiz 🎁
+            </button>
+        </div>
+
+        <!-- Quiz Section -->
+        <div id="quiz-section" class="hidden">
+            <h2 id="question-text" class="text-3xl text-gray-800 font-bold mb-6">Question</h2>
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Answer buttons will be generated here by JavaScript -->
+            </div>
+            <p id="feedback-message" class="mt-4 text-xl font-semibold"></p>
+        </div>
+
+        <!-- Final Message Section -->
+        <div id="final-section" class="hidden">
+            <h1 class="text-6xl font-extrabold text-yellow-500 text-neon mb-4">
+                You Did It!
+            </h1>
+            
+            <p class="text-2xl text-gray-700 mt-4 animate-bounce">
+                Happy Birthday, from all of us! 🎉🎂
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        // Use a self-invoking function to avoid polluting the global scope
+        (function() {
+            // ==========================================================
+            // QUIZ DATA - EDIT THE QUESTIONS AND ANSWERS HERE
+            // ==========================================================
+            const quizQuestions = [
+                {
+                    question: "What is the capital of France?",
+                    options: ["Berlin", "Madrid", "Paris", "Rome"],
+                    correctAnswer: "Paris"
+                },
+                {
+                    question: "Which planet is known as the 'Red Planet'?",
+                    options: ["Mars", "Jupiter", "Venus", "Saturn"],
+                    correctAnswer: "Mars"
+                },
+                {
+                    question: "What is 2 + 2?",
+                    options: ["3", "4", "5", "6"],
+                    correctAnswer: "4"
+                },
+                {
+                    question: "Which animal is the largest in the world?",
+                    options: ["Elephant", "Blue Whale", "Giraffe", "Shark"],
+                    correctAnswer: "Blue Whale"
+                }
+            ];
+
+            // ==========================================================
+            // DOM ELEMENTS
+            // ==========================================================
+            const introSection = document.getElementById('intro-section');
+            const quizSection = document.getElementById('quiz-section');
+            const finalSection = document.getElementById('final-section');
+            const startButton = document.getElementById('start-button');
+            const questionText = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+
+            let currentQuestionIndex = 0;
+
+            // ==========================================================
+            // QUIZ LOGIC
+            // ==========================================================
+            startButton.addEventListener('click', () => {
+                introSection.classList.add('hidden');
+                quizSection.classList.remove('hidden');
+                showQuestion(currentQuestionIndex);
+            });
+
+            function showQuestion(index) {
+                if (index >= quizQuestions.length) {
+                    endQuiz();
+                    return;
+                }
+
+                const questionData = quizQuestions[index];
+                questionText.textContent = questionData.question;
+                optionsContainer.innerHTML = ''; // Clear previous buttons
+
+                questionData.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add(
+                        'bg-blue-400', 'text-white', 'font-semibold', 'py-4', 'px-6', 'rounded-full', 'shadow-md',
+                        'hover:bg-blue-500', 'transition-all', 'duration-200', 'transform', 'hover:scale-105'
+                    );
+                    button.addEventListener('click', () => checkAnswer(option, questionData.correctAnswer));
+                    optionsContainer.appendChild(button);
+                });
+            }
+
+            function checkAnswer(selectedOption, correctAnswer) {
+                if (selectedOption === correctAnswer) {
+                    currentQuestionIndex++;
+                    setTimeout(() => {
+                        showQuestion(currentQuestionIndex);
+                    }, 500); // Small delay before showing next question
+                } else {
+                    // You could add a 'shake' animation or highlight the correct answer here for feedback
+                    const buttons = optionsContainer.querySelectorAll('button');
+                    buttons.forEach(button => {
+                        if (button.textContent === correctAnswer) {
+                            button.classList.remove('bg-blue-400');
+                            button.classList.add('bg-green-500'); // Highlight correct answer
+                        } else if (button.textContent === selectedOption) {
+                            button.classList.remove('bg-blue-400');
+                            button.classList.add('bg-red-500'); // Highlight wrong answer
+                        }
+                        button.disabled = true; // Disable buttons after an answer is selected
+                    });
+                    setTimeout(() => {
+                        showQuestion(currentQuestionIndex);
+                    }, 1500); // Wait a bit longer after a wrong answer
+                }
+            }
+
+            function endQuiz() {
+                quizSection.classList.add('hidden');
+                finalSection.classList.remove('hidden');
+                startConfetti();
+            }
+
+            // ==========================================================
+            // CONFETTI ANIMATION
+            // ==========================================================
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            let confetti = [];
+
+            // Set canvas size to fill the window
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            function rand(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            class Confetti {
+                constructor() {
+                    this.x = rand(0, canvas.width);
+                    this.y = rand(0, -canvas.height);
+                    this.size = rand(5, 12);
+                    this.speed = rand(2, 6);
+                    this.rotation = rand(0, 360);
+                    this.spin = rand(-5, 5);
+                    this.color = `hsl(${rand(0, 360)}, 100%, 70%)`;
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.rotation * Math.PI / 180);
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                    ctx.restore();
+                }
+
+                update() {
+                    this.y += this.speed;
+                    this.rotation += this.spin;
+                    if (this.y > canvas.height) {
+                        this.x = rand(0, canvas.width);
+                        this.y = rand(0, -50);
+                    }
+                }
+            }
+
+            function startConfetti() {
+                // Populate the confetti array
+                for (let i = 0; i < 200; i++) {
+                    confetti.push(new Confetti());
+                }
+                animateConfetti();
+            }
+
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                confetti.forEach(c => {
+                    c.draw();
+                    c.update();
+                });
+                requestAnimationFrame(animateConfetti);
+            }
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        })();
+    </script>
+</body>
+</html>
